@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Image Map Content</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .image-container {
+            position: relative;
+            width: 100%;
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .tooltip {
+            position: absolute;
+            display: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        area {
+            cursor: pointer;
+        }
+
+        area:hover {
+            opacity: 0.7;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+            z-index: 1000;
+        }
+
+        #overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+
+        #overlay .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="image-container">
+    <img src="https://i.ibb.co/NS34XbN/Colorful-Playful-Mind-Map-Graph-3.png" usemap="#image-map" id="mainImage">
+    <div class="tooltip" id="tooltip"></div>
+</div>
+
+<map name="image-map">
+    <area alt="Climate Change" href="https://i.ibb.co/Ch7GJDW/Green-Gray-Minimalist-8-Ways-We-Can-Save-the-Environment-Infograhic-1.png" coords="553,77,988,305" shape="rect" data-tooltip="Climate Change" data-type="image">
+    <area alt="Greenhouse Gases" href="https://i.ibb.co/QvSjdWv/Colorful-Vibrant-Causes-And-Impacts-Of-Global-Warming-Infographic-Poster-1.png" coords="13,72,219,249" shape="circle" data-tooltip="Greenhouse Gases" data-type="image">
+    <area alt="Deforestation" href="https://www.youtube.com/watch?v=Ic-J6hcSKa8" coords="25,493,241,664" shape="circle" data-tooltip="Deforestation" data-type="link">
+    <area alt="3Rs" href="https://i.ibb.co/hBzdYC9/Green-Three-R-World-Environment-day-instagram-Story.png" coords="459,936,644,1097" shape="circle" data-tooltip="3Rs" data-type="image">
+    <area alt="Global Warming" href="https://i.ibb.co/LR0hSwZ/Global-Warming-Infographic-with-Earth-Character.png" coords="404,600,585,750" shape="circle" data-tooltip="Global Warming" data-type="image">
+    <area alt="Extreme Weather" href="https://i.ibb.co/NZ8PzsK/Content-Page.png" coords="689,786,869,953" shape="circle" data-tooltip="Extreme Weather" data-type="image">
+    <area alt="Renewable Energy" href="https://i.ibb.co/ygJMTcg/Green-And-Blue-Modern-Renewable-Energy-Infographic.png" coords="889,923,1051,1096" shape="circle" data-tooltip="Renewable Energy" data-type="image">
+    <area alt="Sea-level Rise" href="https://www.youtube.com/watch?v=QH-KYmRAzOA" coords="945,598,1131,767" shape="circle" data-tooltip="Sea-level Rise" data-type="link">
+    <area alt="Satellite Data" href="https://www.satimagingcorp.com/applications/environmental-impact-studies/global-warming/" coords="1330,510,1527,674" shape="circle" data-tooltip="Satellite Data" data-type="link">
+    <area alt="Temperature Records" href="https://climate.nasa.gov/vital-signs/global-temperature/?intent=121" coords="1309,76,1488,251" shape="circle" data-tooltip="Temperature Records" data-type="link">
+</map>
+
+<div id="overlay">
+    <span class="close" onclick="closeOverlay()">×</span>
+    <img id="overlayImage" src="" alt="Overlay Image">
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltip = document.getElementById('tooltip');
+        const areas = document.querySelectorAll('area');
+        const overlay = document.getElementById('overlay');
+        const overlayImage = document.getElementById('overlayImage');
+
+        areas.forEach(area => {
+            area.addEventListener('mouseover', function() {
+                tooltip.style.display = 'block';
+                tooltip.innerText = this.dataset.tooltip;
+            });
+
+            area.addEventListener('mousemove', function(e) {
+                tooltip.style.top = e.pageY + 10 + 'px';
+                tooltip.style.left = e.pageX + 10 + 'px';
+            });
+
+            area.addEventListener('mouseout', function() {
+                tooltip.style.display = 'none';
+            });
+
+            area.addEventListener('click', function(e) {
+                e.preventDefault();
+                const linkType = this.dataset.type;
+                const href = this.href;
+                if (linkType === 'image') {
+                    overlayImage.src = href;
+                    overlay.style.display = 'flex';
+                } else {
+                    window.open(href, '_blank');
+                }
+            });
+        });
+
+        const mainImage = document.getElementById('mainImage');
+        const originalWidth = mainImage.naturalWidth;
+        const originalHeight = mainImage.naturalHeight;
+
+        window.addEventListener('resize', scaleCoordinates);
+        mainImage.addEventListener('load', scaleCoordinates);
+
+        function scaleCoordinates() {
+            const widthRatio = mainImage.clientWidth / originalWidth;
+            const heightRatio = mainImage.clientHeight / originalHeight;
+
+            areas.forEach(area => {
+                const coords = area.dataset.originalCoords.split(',').map(Number);
+                const scaledCoords = coords.map((coord, index) => {
+                    return (index % 2 === 0) ? coord * widthRatio : coord * heightRatio;
+                });
+                area.coords = scaledCoords.join(',');
+            });
+        }
+
+        areas.forEach(area => {
+            area.dataset.originalCoords = area.coords;
+        });
+    });
+
+    function closeOverlay() {
+        document.getElementById('overlay').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
